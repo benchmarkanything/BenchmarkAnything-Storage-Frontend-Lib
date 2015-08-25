@@ -206,4 +206,94 @@ sub createdb
         return;
 }
 
+=head2 add
+
+Adds all data points of a BenchmarkAnything structure to the backend
+store.
+
+=cut
+
+sub add
+{
+        my ($self, $data) = @_;
+
+        # --- validate ---
+        if (not $data)
+        {
+                die "benchmarkanything: no input data provided.\n";
+        }
+
+        require BenchmarkAnything::Schema;
+        print "Verify schema...\n" if $self->{verbose};
+        if (not my $result = BenchmarkAnything::Schema::valid_json_schema($data))
+        {
+                die "benchmarkanything: add: invalid input: ".join("; ", $result->errors)."\n";
+        }
+
+
+        # --- add to storage ---
+
+        if ($self->{backend} eq 'tapper')
+        {
+                # add data
+                print "Add data...\n" if $self->{verbose};
+                foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
+                    my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
+                    if (not $success)
+                    {
+                        die "benchmarkanything: error while adding data to backend '".$self->{backend}."': ".$@;
+                    }
+                }
+                print "Done.\n" if $self->{verbose};
+        }
+        else
+        {
+                die "benchmarkanything: backend ".$self->{backend}." not yet implemented, available backends are: 'tapper'\n";
+        }
+
+        return $self;
+}
+
+=head2 search
+
+Execute a search query against the backend store, currently
+L<Tapper::Benchmark|Tapper::Benchmark>, and returns the list of found
+data points, as configured by the search query.
+
+=cut
+
+sub search
+{
+        my ($self, $query) = @_;
+
+        # --- validate ---
+        if (not $query)
+        {
+                die "benchmarkanything: no query data provided.\n";
+        }
+
+        if ($self->{backend} eq 'tapper')
+        {
+                return $self->{tapper_benchmark}->search_array($query);
+        }
+        else
+        {
+                die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
+        }
+}
+
+sub listnames
+{
+        my ($self, $pattern) = @_;
+
+        if ($self->{backend} eq "tapper")
+        {
+                return $self->{tapper_benchmark}->list_benchmark_names(defined($pattern) ? ($pattern) : ());
+        }
+        else
+        {
+                die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
+        }
+}
+
 1;
