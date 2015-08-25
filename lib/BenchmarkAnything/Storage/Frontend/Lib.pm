@@ -14,6 +14,18 @@ Instantiate a new object.
 Path to config file. If not provided it uses env variable
 C<BENCHMARKANYTHING_CONFIGFILE> or C<$home/.benchmarkanything.cfg>.
 
+=item * really
+
+Used for critical functions like createdb. Provide a true value or, in
+case of L</createdb>, the DSN of the database that you are about to
+(re-)create.
+
+=item * backend
+
+There are potentially multiple different backend stores. Currently
+only backend C<tapper> is supported which means an SQL database
+accessed with C<Tapper::Benchmark|Tapper::Benchmark>.
+
 =back
 
 =cut
@@ -28,8 +40,12 @@ sub new
 
 =head2 _read_config
 
+Internal function.
+
 Reads the config file; either from given file name, or env variable
 C<BENCHMARKANYTHING_CONFIGFILE> or C<$home/.benchmarkanything.cfg>.
+
+Returns the object to allow chained method calls.
 
 =cut
 
@@ -45,6 +61,14 @@ sub _read_config
         $self->{config} = YAML::Any::Load($configyaml);
         return $self;
 }
+
+=head2 connect
+
+Connects to the database according to the DB handle from config.
+
+Returns the object to allow chained method calls.
+
+=cut
 
 sub connect
 {
