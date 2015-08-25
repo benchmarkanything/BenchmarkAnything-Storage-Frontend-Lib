@@ -206,7 +206,7 @@ sub createdb
         return;
 }
 
-=head2 add
+=head2 add ($data)
 
 Adds all data points of a BenchmarkAnything structure to the backend
 store.
@@ -238,11 +238,11 @@ sub add
                 # add data
                 print "Add data...\n" if $self->{verbose};
                 foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
-                    my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
-                    if (not $success)
-                    {
-                        die "benchmarkanything: error while adding data to backend '".$self->{backend}."': ".$@;
-                    }
+                        my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
+                        if (not $success)
+                        {
+                                die "benchmarkanything: error while adding data to backend '".$self->{backend}."': ".$@;
+                        }
                 }
                 print "Done.\n" if $self->{verbose};
         }
@@ -254,7 +254,7 @@ sub add
         return $self;
 }
 
-=head2 search
+=head2 search ($query)
 
 Execute a search query against the backend store, currently
 L<Tapper::Benchmark|Tapper::Benchmark>, and returns the list of found
@@ -281,6 +281,14 @@ sub search
                 die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
         }
 }
+
+=head2 listnames ($pattern)
+
+Returns an array ref with all metric NAMEs. Optionally allows to
+restrict the search by a SQL LIKE search pattern, allowing C<%> as
+wildcard.
+
+=cut
 
 sub listnames
 {
