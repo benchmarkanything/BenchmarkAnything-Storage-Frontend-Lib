@@ -26,6 +26,15 @@ There are potentially multiple different backend stores. Currently
 only backend C<tapper> is supported which means an SQL database
 accessed with C<Tapper::Benchmark|Tapper::Benchmark>.
 
+=item * verbose
+
+Print out progress messages.
+
+=item * debug
+
+Pass through debug option to used modules, like
+L<Tapper::Benchmark|Tapper::Benchmark>.
+
 =back
 
 =cut
