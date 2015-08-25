@@ -12,8 +12,8 @@ require BenchmarkAnything::Storage::Frontend::Lib;
 my $cfgfile   = "t/benchmarkanything-tapper.cfg";
 my $dsn       = 'dbi:SQLite:t/benchmarkanything.sqlite';
 
-my $config = BenchmarkAnything::Storage::Frontend::Lib::get_config($cfgfile);
-is ($config->{benchmarkanything}{backends}{tapper}{benchmark}{dsn}, $dsn, "config - dsn");
+my $balib  = BenchmarkAnything::Storage::Frontend::Lib->new(cfgfile => $cfgfile);
+is ($balib->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn}, $dsn, "config - dsn");
 
 # Finish
 done_testing;
