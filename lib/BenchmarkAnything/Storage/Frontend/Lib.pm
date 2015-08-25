@@ -87,14 +87,20 @@ sub connect
         if ($self->{backend} eq 'tapper')
         {
                 require DBI;
+                require Tapper::Benchmark;
                 no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
                 # connect
+                print "Connect db...\n" if $self->{verbose};
                 my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
                 my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
                 my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
-                $self->{dbh} = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
+                my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
+
+                # remember
+                $self->{dbh}              = $dbh;
+                $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
         }
         else
         {
@@ -170,7 +176,6 @@ sub createdb
                         require DBI;
                         require File::Slurp;
                         require File::ShareDir;
-                        require Tapper::Benchmark;
                         use DBIx::MultiStatementDo;
 
                         my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
