@@ -56,9 +56,10 @@ sub _read_config
         require File::Slurp;
         require YAML::Any;
 
-        my $configfile  = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || File::HomeDir->my_home . "/.benchmarkanything.cfg";
-        my $configyaml  = File::Slurp::read_file($configfile);
-        $self->{config} = YAML::Any::Load($configyaml);
+        my $configfile     = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || File::HomeDir->my_home . "/.benchmarkanything.cfg";
+        my $configyaml     = File::Slurp::read_file($configfile);
+        $self->{config}    = YAML::Any::Load($configyaml);
+        $self->{backend} ||= 'tapper';
         return $self;
 }
 
