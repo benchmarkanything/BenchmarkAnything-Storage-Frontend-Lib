@@ -15,6 +15,7 @@ my $cfgfile   = "t/benchmarkanything-tapper.cfg";
 my $dsn       = 'dbi:SQLite:t/benchmarkanything.sqlite';
 my $output_json;
 my $output;
+my $expected;
 
 sub verify {
         my ($input, $output, $fields, $query_file) = @_;
