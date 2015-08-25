@@ -74,17 +74,121 @@ sub connect
 {
         my ($self) = @_;
 
-        require DBI;
-        no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
+        if ($self->{backend} eq 'tapper')
+        {
+                require DBI;
+                no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
-        # connect
-        my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
-        my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
-        my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
-        $self->{dbh} = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
-         or die "benchmarkanything: can not connect: ".$DBI::errstr;
-
+                # connect
+                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+                my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
+                my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
+                $self->{dbh} = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
+                 or die "benchmarkanything: can not connect: ".$DBI::errstr;
+        }
+        else
+        {
+                die "benchmarkanything: backend ".$self->{backend}." not yet implemented.\nAvailable backends are: 'tapper'\n";
+        }
         return $self;
+}
+
+=head2 _are_you_sure
+
+Internal method.
+
+Find out if you are really sure. Usually used in L</createdb>. You
+need to have provided an option C<really> which matches the DSN of the
+database that your are about to (re-)create.
+
+If the DSN does not match it asks interactively on STDIN - have this
+in mind on non-interactive backend programs, like a web application.
+
+=cut
+
+sub _are_you_sure
+{
+        my ($self) = @_;
+
+        # DSN
+        my $dsn = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+
+        # option --really
+        if ($self->{really})
+        {
+                if ($self->{really} eq $dsn)
+                {
+                        return 1;
+                }
+                else
+                {
+                        print STDERR "DSN does not match - asking interactive.\n";
+                }
+        }
+
+        # ask on stdin
+        print "REALLY DELETE AND RE-CREATE DATABASE [$dsn] (y/N): ";
+        read STDIN, my $answer, 1;
+        return 1 if $answer && $answer =~ /^y(es)?$/i;
+
+        # default: NO
+        return 0;
+}
+
+=head2 createdb
+
+Initializes the DB, as configured by C<backend> and C<dsn>.  On
+backend C<tapper> this means executing the DROP TABLE and CREATE TABLE
+statements that come with
+L<Tapper::Benchmark|Tapper::Benchmark>. Because that is a severe
+operation it verifies an "are you sure" test, by comparing the
+parameter C<really> against the DSN from the config, or if that
+doesn't match, asking interactively on STDIN.
+
+=cut
+
+sub createdb
+{
+        my ($self) = @_;
+
+        if ($self->{backend} eq 'tapper')
+        {
+                if ($self->_are_you_sure)
+                {
+                        no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
+
+                        require DBI;
+                        require File::Slurp;
+                        require File::ShareDir;
+                        require Tapper::Benchmark;
+                        use DBIx::MultiStatementDo;
+
+                        my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
+
+                        # get schema SQL according to driver
+                        my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+                        my ($scheme, $driver, $attr_string, $attr_hash, $driver_dsn) = DBI->parse_dsn($dsn)
+                         or die "benchmarkanything: can not parse DBI DSN '$dsn'";
+                        my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
+                        my $sql_file = File::ShareDir::dist_file('Tapper-Benchmark', "tapper-benchmark-create-schema.$driver");
+                        my $sql      = File::Slurp::read_file($sql_file);
+                        $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace Tapper::Benchmark's default
+
+                        # execute schema SQL
+                        my @results = $batch->do($sql);
+                        if (not @results)
+                        {
+                                die "benchmarkanything: error while creating BenchmarkAnything DB: ".$batch->dbh->errstr;
+                        }
+
+                }
+        }
+        else
+        {
+                die "benchmarkanything: backend ".$self->{backend}." not yet implemented.\nAvailable backends are: 'tapper'\n";
+        }
+
+        return;
 }
 
 1;
