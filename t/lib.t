@@ -80,17 +80,19 @@ query_and_verify($balib,
 
 # diag "\n========== Test duplicate handling ==========";
 
-# # Create and fill test DB
-# $balib->createdb;
-# # Create duplicates
-# $balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
-# $balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
+# Create and fill test DB
+$balib->createdb;
 
-# query_and_verify($balib,
-#                  "t/query-benchmark-anything-04.json",
-#                  "t/query-benchmark-anything-04-expectedresult.json",
-#                  [qw(NAME VALUE comment compiler keyword)]
-#                 );
+# Create duplicates
+$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
+$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
+
+# verify
+query_and_verify($balib,
+                 "t/query-benchmark-anything-04.json",
+                 "t/query-benchmark-anything-04-expectedresult.json",
+                 [qw(NAME VALUE comment compiler keyword)]
+                );
 
 
 diag "\n========== Metric names ==========";
@@ -99,7 +101,6 @@ $balib->createdb;
 $balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-02.json')));
 
 # simple list
-
 $output = $balib->listnames;
 is(scalar @$output, 5, "expected count of metrics");
 cmp_set($output,
