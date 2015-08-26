@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.002     2015-08-26
         - allow different output formats, especially 'flat'
 
 0.001     2015-08-26
