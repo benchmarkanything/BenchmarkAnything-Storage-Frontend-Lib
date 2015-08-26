@@ -3,6 +3,8 @@ use warnings;
 package BenchmarkAnything::Storage::Frontend::Lib;
 # ABSTRACT: Basic functions to access a BenchmarkAnything store
 
+use Scalar::Util 'reftype';
+
 =head2 new
 
 Instantiate a new object.
@@ -35,6 +37,20 @@ Print out progress messages.
 Pass through debug option to used modules, like
 L<Tapper::Benchmark|Tapper::Benchmark>.
 
+=item * separator
+
+Used for output format I<flat>. Sub entry separator (default=;).
+
+=item * fb
+
+Used for output format I<flat>. If set it generates [brackets] around
+outer arrays (default=0).
+
+=item * fi
+
+Used for output format I<flat>. If set it prefixes outer array lines
+with index.
+
 =back
 
 =cut
@@ -45,6 +61,244 @@ sub new
         my $self  = bless { @_ }, $class;
         $self->_read_config;
         return $self;
+}
+
+sub _format_flat_inner_scalar
+{
+    my ($self, $result) = @_;
+
+    return "$result";
+}
+
+sub _format_flat_inner_array
+{
+        my ($self, $result, $opt) = @_;
+
+        return
+         join($opt->{separator},
+              map {
+                   # only SCALARS allowed (where reftype returns undef)
+                   die "dpath: unsupported innermost nesting (".reftype($_).") for 'flat' output.\n" if defined reftype($_);
+                   "".$_
+                  } @$result);
+}
+
+sub _format_flat_inner_hash
+{
+        my ($c, $result, $opt) = @_;
+
+        return
+         join($opt->{separator},
+              map { my $v = $result->{$_};
+                    # only SCALARS allowed (where reftype returns undef)
+                    die "dpath: unsupported innermost nesting (".reftype($v).") for 'flat' output.\n" if defined reftype($v);
+                    "$_=".$v
+                  } keys %$result);
+}
+
+sub _format_flat_outer
+{
+        my ($c, $result, $opt) = @_;
+
+        my $output = "";
+        die "dpath: can not flatten data structure (undef) - try other output format.\n" unless defined $result;
+
+        my $A = ""; my $B = ""; if ($opt->{fb}) { $A = "["; $B = "]" }
+        my $fi = $opt->{fi};
+
+        if (!defined reftype $result) { # SCALAR
+                $output .= $result."\n"; # stringify
+        }
+        elsif (reftype $result eq 'ARRAY') {
+                for (my $i=0; $i<@$result; $i++) {
+                        my $entry  = $result->[$i];
+                        my $prefix = $fi ? "$i:" : "";
+                        if (!defined reftype $entry) { # SCALAR
+                                $output .= $prefix.$A._format_flat_inner_scalar($c, $entry)."$B\n";
+                        }
+                        elsif (reftype $entry eq 'ARRAY') {
+                                $output .= $prefix.$A._format_flat_inner_array($c, $entry)."$B\n";
+                        }
+                        elsif (reftype $entry eq 'HASH') {
+                                $output .= $prefix.$A._format_flat_inner_hash($c, $entry)."$B\n";
+                        }
+                        else {
+                                die "dpath: can not flatten data structure (".reftype($entry).").\n";
+                        }
+                }
+        }
+        elsif (reftype $result eq 'HASH') {
+                my @keys = keys %$result;
+                foreach my $key (@keys) {
+                        my $entry = $result->{$key};
+                        if (!defined reftype $entry) { # SCALAR
+                                $output .= "$key:"._format_flat_inner_scalar($c, $entry)."\n";
+                        }
+                        elsif (reftype $entry eq 'ARRAY') {
+                                $output .= "$key:"._format_flat_inner_array($c, $entry)."\n";
+                        }
+                        elsif (reftype $entry eq 'HASH') {
+                                $output .= "$key:"._format_flat_inner_hash($c, $entry)."\n";
+                        }
+                        else {
+                                die "dpath: can not flatten data structure (".reftype($entry).").\n";
+                        }
+                }
+        }
+        else {
+                die "dpath: can not flatten data structure (".reftype($result).") - try other output format.\n";
+        }
+
+        return $output;
+}
+
+
+sub _format_flat
+{
+        my ($c, $resultlist, $opt) = @_;
+
+        my $output = "";
+        $opt->{separator} = ";" unless defined $opt->{separator};
+        $output .= _format_flat_outer($c, $_) foreach @$resultlist;
+        return $output;
+}
+
+=head2 _output_format
+
+This function converts a data structure into requested output format.
+
+=head3 Output formats
+
+The following B<output formats> are allowed:
+
+ yaml   - YAML::Any
+ json   - JSON (default)
+ xml    - XML::Simple
+ ini    - Config::INI::Serializer
+ dumper - Data::Dumper (including the leading $VAR1 variable assignment)
+ flat   - pragmatic flat output for typical unixish cmdline usage
+
+=head3 The 'flat' output format
+
+The C<flat> output format is meant to support typical unixish command
+line uses. It is not a strong serialization format but works well for
+simple values nested max 2 levels.
+
+Output looks like this:
+
+=head4 Plain values
+
+ Affe
+ Tiger
+ Birne
+
+=head4 Outer hashes
+
+One outer key per line, key at the beginning of line with a colon
+(C<:>), inner values separated by semicolon C<;>:
+
+=head4 inner scalars:
+
+ coolness:big
+ size:average
+ Eric:The flat one from the 90s
+
+=head4 inner hashes:
+
+Tuples of C<key=value> separated by semicolon C<;>:
+
+ Affe:coolness=big;size=average
+ Zomtec:coolness=bit anachronistic;size=average
+
+=head4 inner arrays:
+
+Values separated by semicolon C<;>:
+
+ Birne:bissel;hinterher;manchmal
+
+=head4 Outer arrays
+
+One entry per line, entries separated by semicolon C<;>:
+
+=head4 Outer arrays / inner scalars:
+
+ single report string
+ foo
+ bar
+ baz
+
+=head4 Outer arrays / inner hashes:
+
+Tuples of C<key=value> separated by semicolon C<;>:
+
+ Affe=amazing moves in the jungle;Zomtec=slow talking speed;Birne=unexpected in many respects
+
+=head4 Outer arrays / inner arrays:
+
+Entries separated by semicolon C<;>:
+
+ line A-1;line A-2;line A-3;line A-4;line A-5
+ line B-1;line B-2;line B-3;line B-4
+ line C-1;line C-2;line C-3
+
+=head4 Additional markup for arrays:
+
+ --fb            ... use [brackets] around outer arrays
+ --fi            ... prefix outer array lines with index
+ --separator=;   ... use given separator between array entries (defaults to ";")
+
+Such additional markup lets outer arrays look like this:
+
+ 0:[line A-1;line A-2;line A-3;line A-4;line A-5]
+ 1:[line B-1;line B-2;line B-3;line B-4]
+ 2:[line C-1;line C-2;line C-3]
+ 3:[Affe=amazing moves in the jungle;Zomtec=slow talking speed;Birne=unexpected in many respects]
+ 4:[single report string]
+
+=cut
+
+sub _output_format
+{
+        my ($self, $data, $opt) = @_;
+
+        my $output  = "";
+        my $outtype = $opt->{outtype} || 'json';
+
+        if ($outtype eq "yaml")
+        {
+                require YAML::Any;
+                $output .= YAML::Any::Dump($data);
+        }
+        elsif ($outtype eq "json")
+        {
+                eval "use JSON -convert_blessed_universally";
+                my $json = JSON->new->allow_nonref->pretty->allow_blessed->convert_blessed;
+                $output .= $json->encode($data);
+        }
+        elsif ($outtype eq "ini") {
+                require Config::INI::Serializer;
+                my $ini = Config::INI::Serializer->new;
+                $output .= $ini->serialize($data);
+        }
+        elsif ($outtype eq "dumper")
+        {
+                require Data::Dumper;
+                $output .= Data::Dumper::Dumper($data);
+        }
+        elsif ($outtype eq "xml")
+        {
+                require XML::Simple;
+                my $xs = new XML::Simple;
+                $output .= $xs->XMLout($data, AttrIndent => 1, KeepRoot => 1);
+        }
+        elsif ($outtype eq "flat") {
+                $output .= $self->_format_flat( $data );
+        }
+        else
+        {
+                die "benchmarkanything-storage: unrecognized output format: $outtype.";
+        }
+        return $output;
 }
 
 =head2 _read_config
