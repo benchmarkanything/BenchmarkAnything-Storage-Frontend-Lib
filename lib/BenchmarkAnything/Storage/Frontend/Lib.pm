@@ -78,7 +78,7 @@ sub _format_flat_inner_array
          join($opt->{separator},
               map {
                    # only SCALARS allowed (where reftype returns undef)
-                   die "dpath: unsupported innermost nesting (".reftype($_).") for 'flat' output.\n" if defined reftype($_);
+                   die "benchmarkanything: unsupported innermost nesting (".reftype($_).") for 'flat' output.\n" if defined reftype($_);
                    "".$_
                   } @$result);
 }
@@ -91,7 +91,7 @@ sub _format_flat_inner_hash
          join($opt->{separator},
               map { my $v = $result->{$_};
                     # only SCALARS allowed (where reftype returns undef)
-                    die "dpath: unsupported innermost nesting (".reftype($v).") for 'flat' output.\n" if defined reftype($v);
+                    die "benchmarkanything: unsupported innermost nesting (".reftype($v).") for 'flat' output.\n" if defined reftype($v);
                     "$_=".$v
                   } keys %$result);
 }
@@ -101,7 +101,7 @@ sub _format_flat_outer
         my ($c, $result, $opt) = @_;
 
         my $output = "";
-        die "dpath: can not flatten data structure (undef) - try other output format.\n" unless defined $result;
+        die "benchmarkanything: can not flatten data structure (undef) - try other output format.\n" unless defined $result;
 
         my $A = ""; my $B = ""; if ($opt->{fb}) { $A = "["; $B = "]" }
         my $fi = $opt->{fi};
@@ -123,7 +123,7 @@ sub _format_flat_outer
                                 $output .= $prefix.$A._format_flat_inner_hash($c, $entry)."$B\n";
                         }
                         else {
-                                die "dpath: can not flatten data structure (".reftype($entry).").\n";
+                                die "benchmarkanything: can not flatten data structure (".reftype($entry).").\n";
                         }
                 }
         }
@@ -141,17 +141,16 @@ sub _format_flat_outer
                                 $output .= "$key:"._format_flat_inner_hash($c, $entry)."\n";
                         }
                         else {
-                                die "dpath: can not flatten data structure (".reftype($entry).").\n";
+                                die "benchmarkanything: can not flatten data structure (".reftype($entry).").\n";
                         }
                 }
         }
         else {
-                die "dpath: can not flatten data structure (".reftype($result).") - try other output format.\n";
+                die "benchmarkanything: can not flatten data structure (".reftype($result).") - try other output format.\n";
         }
 
         return $output;
 }
-
 
 sub _format_flat
 {
