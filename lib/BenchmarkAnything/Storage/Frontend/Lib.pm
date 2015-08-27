@@ -65,7 +65,9 @@ sub new
 
 sub _format_flat_inner_scalar
 {
-    my ($self, $result) = @_;
+    my ($self, $result, $opt) = @_;
+
+    no warnings 'uninitialized';
 
     return "$result";
 }
@@ -73,6 +75,8 @@ sub _format_flat_inner_scalar
 sub _format_flat_inner_array
 {
         my ($self, $result, $opt) = @_;
+
+        no warnings 'uninitialized';
 
         return
          join($opt->{separator},
@@ -85,7 +89,9 @@ sub _format_flat_inner_array
 
 sub _format_flat_inner_hash
 {
-        my ($c, $result, $opt) = @_;
+        my ($self, $result, $opt) = @_;
+
+        no warnings 'uninitialized';
 
         return
          join($opt->{separator},
@@ -98,7 +104,9 @@ sub _format_flat_inner_hash
 
 sub _format_flat_outer
 {
-        my ($c, $result, $opt) = @_;
+        my ($self, $result, $opt) = @_;
+
+        no warnings 'uninitialized';
 
         my $output = "";
         die "benchmarkanything: can not flatten data structure (undef) - try other output format.\n" unless defined $result;
