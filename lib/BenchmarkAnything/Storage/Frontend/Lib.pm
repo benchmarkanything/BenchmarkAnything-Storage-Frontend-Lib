@@ -162,7 +162,11 @@ sub _format_flat_outer
 
 sub _format_flat
 {
-        my ($c, $resultlist, $opt) = @_;
+        my ($self, $result, $opt) = @_;
+
+        # ensure array container
+        # for consistent output in 'getpoint' and 'search'
+        my $resultlist = reftype($result) eq 'ARRAY' ? $result : [$result];
 
         my $output = "";
         $opt->{separator} = ";" unless defined $opt->{separator};
