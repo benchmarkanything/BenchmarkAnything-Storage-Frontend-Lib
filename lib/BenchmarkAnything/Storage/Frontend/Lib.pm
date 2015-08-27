@@ -122,13 +122,13 @@ sub _format_flat_outer
                         my $entry  = $result->[$i];
                         my $prefix = $fi ? "$i:" : "";
                         if (!defined reftype $entry) { # SCALAR
-                                $output .= $prefix.$A._format_flat_inner_scalar($c, $entry)."$B\n";
+                                $output .= $prefix.$A.$self->_format_flat_inner_scalar($entry, $opt)."$B\n";
                         }
                         elsif (reftype $entry eq 'ARRAY') {
-                                $output .= $prefix.$A._format_flat_inner_array($c, $entry)."$B\n";
+                                $output .= $prefix.$A.$self->_format_flat_inner_array($entry, $opt)."$B\n";
                         }
                         elsif (reftype $entry eq 'HASH') {
-                                $output .= $prefix.$A._format_flat_inner_hash($c, $entry)."$B\n";
+                                $output .= $prefix.$A.$self->_format_flat_inner_hash($entry, $opt)."$B\n";
                         }
                         else {
                                 die "benchmarkanything: can not flatten data structure (".reftype($entry).").\n";
@@ -140,13 +140,13 @@ sub _format_flat_outer
                 foreach my $key (@keys) {
                         my $entry = $result->{$key};
                         if (!defined reftype $entry) { # SCALAR
-                                $output .= "$key:"._format_flat_inner_scalar($c, $entry)."\n";
+                                $output .= "$key:".$self->_format_flat_inner_scalar($entry, $opt)."\n";
                         }
                         elsif (reftype $entry eq 'ARRAY') {
-                                $output .= "$key:"._format_flat_inner_array($c, $entry)."\n";
+                                $output .= "$key:".$self->_format_flat_inner_array($entry, $opt)."\n";
                         }
                         elsif (reftype $entry eq 'HASH') {
-                                $output .= "$key:"._format_flat_inner_hash($c, $entry)."\n";
+                                $output .= "$key:".$self->_format_flat_inner_hash($entry, $opt)."\n";
                         }
                         else {
                                 die "benchmarkanything: can not flatten data structure (".reftype($entry).").\n";
@@ -166,7 +166,7 @@ sub _format_flat
 
         my $output = "";
         $opt->{separator} = ";" unless defined $opt->{separator};
-        $output .= _format_flat_outer($c, $_) foreach @$resultlist;
+        $output .= $self->_format_flat_outer($resultlist, $opt);
         return $output;
 }
 
@@ -299,7 +299,7 @@ sub _output_format
                 $output .= $xs->XMLout($data, AttrIndent => 1, KeepRoot => 1);
         }
         elsif ($outtype eq "flat") {
-                $output .= $self->_format_flat( $data );
+                $output .= $self->_format_flat( $data, $opt );
         }
         else
         {
