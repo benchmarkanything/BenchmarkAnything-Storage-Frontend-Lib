@@ -1,5 +1,4 @@
-{
-    "BenchmarkAnythingData" : [
+[
         {
             "NAME"     : "benchmarkanything.test.metric",
             "VALUE"    : 27.34,
@@ -56,5 +55,4 @@
             "compiler" : "gcc",
             "keyword"  : "birne"
         }
-    ]
-}
+]
