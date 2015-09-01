@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - provide data transformation functions
+          suiting google chart api
 
 0.003     2015-08-28
         - fix output format 'flat'
