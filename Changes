@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.004     2015-09-01
         - provide data transformation functions
           suiting google chart api
 
