@@ -789,7 +789,7 @@ sub transform_chartlines
                         my $stdv  = $VALUES{$title}{$x}{stats}{stdv};
                         my $ci95l = $VALUES{$title}{$x}{stats}{ci_95_lower};
                         my $ci95u = $VALUES{$title}{$x}{stats}{ci_95_upper};
-                        say STDERR sprintf("  %-20s . %-7s . avg = %7.2f +- %5.2f (%3d points)", $title, $x, $avg, $stdv, $count) if $verbose;
+                        say STDERR sprintf("  %-20s . %-7s . (ci95l..avg..ci95u) = (%2.2f .. %2.2f .. %2.2f) +- stdv %5.2f (%3d points)", $title, $x, $ci95l, $avg, $ci95u, $stdv, $count) if $verbose;
                 }
         }
 
