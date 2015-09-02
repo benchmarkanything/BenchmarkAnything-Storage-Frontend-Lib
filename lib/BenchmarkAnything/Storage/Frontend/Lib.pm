@@ -409,7 +409,7 @@ sub _are_you_sure
         }
 
         # ask on stdin
-        print "REALLY DELETE AND RE-CREATE DATABASE [$dsn] (y/N): ";
+        print "REALLY DROP AND RE-CREATE DATABASE TABLES [$dsn] (y/N): ";
         read STDIN, my $answer, 1;
         return 1 if $answer && $answer =~ /^y(es)?$/i;
 
