@@ -559,15 +559,27 @@ sub search
                 die "benchmarkanything: no query or value_id provided.\n";
         }
 
-        if ($self->{backend} eq 'tapper')
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
         {
                 # single values
                 return $self->{tapper_benchmark}->get_single_benchmark_point($value_id) if $value_id;
                 return $self->{tapper_benchmark}->search_array($query);
         }
+        elsif ($frontend eq 'http')
+        {
+                my $ua  = $self->_get_user_agent;
+                my $url = $self->_get_base_url."/api/v1/search/$value_id";
+
+                my $res = $ua->get($url)->res;
+                die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
+
+                my $point = $res->json;
+                return $point;
+        }
         else
         {
-                die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
+                die "benchmarkanything: no frontend '$frontend', available frontends are: 'http', 'lib'.\n";
         }
 }
 
