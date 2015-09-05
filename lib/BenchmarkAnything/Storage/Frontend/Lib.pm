@@ -520,6 +520,22 @@ sub add
         return $self;
 }
 
+sub _get_user_agent
+{
+        my ($self) = @_;
+
+        require Mojo::UserAgent;
+
+        # query
+        my $ua    = Mojo::UserAgent->new;
+        return $ua;
+}
+
+sub _get_base_url
+{
+        shift->{config}{benchmarkanything}{frontends}{http}{base_url};
+}
+
 =head2 search ($query)
 
 Execute a search query against the backend store, currently
