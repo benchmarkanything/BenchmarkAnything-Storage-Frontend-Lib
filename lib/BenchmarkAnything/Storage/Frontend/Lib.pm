@@ -354,28 +354,22 @@ sub connect
 {
         my ($self) = @_;
 
-        if ($self->{backend} eq 'tapper')
-        {
-                require DBI;
-                require Tapper::Benchmark;
-                no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
+        require DBI;
+        require Tapper::Benchmark;
+        no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
-                # connect
-                print "Connect db...\n" if $self->{verbose};
-                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
-                my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
-                my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
-                my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
-                 or die "benchmarkanything: can not connect: ".$DBI::errstr;
+        # connect
+        print "Connect db...\n" if $self->{verbose};
+        my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+        my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
+        my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
+        my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
+         or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
-                # remember
-                $self->{dbh}              = $dbh;
-                $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
-        }
-        else
-        {
-                die "benchmarkanything: backend ".$self->{backend}." not yet implemented.\nAvailable backends are: 'tapper'\n";
-        }
+        # remember
+        $self->{dbh}              = $dbh;
+        $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
+
         return $self;
 }
 
@@ -437,40 +431,33 @@ sub createdb
 {
         my ($self) = @_;
 
-        if ($self->{backend} eq 'tapper')
+        if ($self->_are_you_sure)
         {
-                if ($self->_are_you_sure)
+                no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
+
+                require DBI;
+                require File::Slurp;
+                require File::ShareDir;
+                use DBIx::MultiStatementDo;
+
+                my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
+
+                # get schema SQL according to driver
+                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+                my ($scheme, $driver, $attr_string, $attr_hash, $driver_dsn) = DBI->parse_dsn($dsn)
+                 or die "benchmarkanything: can not parse DBI DSN '$dsn'";
+                my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
+                my $sql_file = File::ShareDir::dist_file('Tapper-Benchmark', "tapper-benchmark-create-schema.$driver");
+                my $sql      = File::Slurp::read_file($sql_file);
+                $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace Tapper::Benchmark's default
+
+                # execute schema SQL
+                my @results = $batch->do($sql);
+                if (not @results)
                 {
-                        no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
-
-                        require DBI;
-                        require File::Slurp;
-                        require File::ShareDir;
-                        use DBIx::MultiStatementDo;
-
-                        my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
-
-                        # get schema SQL according to driver
-                        my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
-                        my ($scheme, $driver, $attr_string, $attr_hash, $driver_dsn) = DBI->parse_dsn($dsn)
-                         or die "benchmarkanything: can not parse DBI DSN '$dsn'";
-                        my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
-                        my $sql_file = File::ShareDir::dist_file('Tapper-Benchmark', "tapper-benchmark-create-schema.$driver");
-                        my $sql      = File::Slurp::read_file($sql_file);
-                        $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace Tapper::Benchmark's default
-
-                        # execute schema SQL
-                        my @results = $batch->do($sql);
-                        if (not @results)
-                        {
-                                die "benchmarkanything: error while creating BenchmarkAnything DB: ".$batch->dbh->errstr;
-                        }
-
+                        die "benchmarkanything: error while creating BenchmarkAnything DB: ".$batch->dbh->errstr;
                 }
-        }
-        else
-        {
-                die "benchmarkanything: backend ".$self->{backend}." not yet implemented.\nAvailable backends are: 'tapper'\n";
+
         }
 
         return;
@@ -504,23 +491,16 @@ sub add
 
         # --- add to storage ---
 
-        if ($self->{backend} eq 'tapper')
-        {
-                # add data
-                print "Add data...\n" if $self->{verbose};
-                foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
-                        my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
-                        if (not $success)
-                        {
-                                die "benchmarkanything: error while adding data to backend '".$self->{backend}."': ".$@;
-                        }
+        # add data
+        print "Add data...\n" if $self->{verbose};
+        foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
+                my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
+                if (not $success)
+                {
+                        die "benchmarkanything: error while adding data: ".$@;
                 }
-                print "Done.\n" if $self->{verbose};
         }
-        else
-        {
-                die "benchmarkanything: backend ".$self->{backend}." not yet implemented, available backends are: 'tapper'\n";
-        }
+        print "Done.\n" if $self->{verbose};
 
         return $self;
 }
