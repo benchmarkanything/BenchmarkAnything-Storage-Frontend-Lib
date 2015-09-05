@@ -22,11 +22,10 @@ Used for critical functions like createdb. Provide a true value or, in
 case of L</createdb>, the DSN of the database that you are about to
 (re-)create.
 
-=item * backend
+=item * skipvalidation
 
-There are potentially multiple different backend stores. Currently
-only backend C<tapper> is supported which means an SQL database
-accessed with C<Tapper::Benchmark|Tapper::Benchmark>.
+Disables schema validation checking, e.g., when you know your data is
+correct and want to save execution time, ususally for C<add()>.
 
 =item * verbose
 
@@ -489,13 +488,14 @@ sub add
                 die "benchmarkanything: no input data provided.\n";
         }
 
-        require BenchmarkAnything::Schema;
-        print "Verify schema...\n" if $self->{verbose};
-        if (not my $result = BenchmarkAnything::Schema::valid_json_schema($data))
-        {
+        if (not $self->{skipvalidation}) {
+            require BenchmarkAnything::Schema;
+            print "Verify schema...\n" if $self->{verbose};
+            if (not my $result = BenchmarkAnything::Schema::valid_json_schema($data))
+            {
                 die "benchmarkanything: add: invalid input: ".join("; ", $result->errors)."\n";
+            }
         }
-
 
         # --- add to storage ---
 
