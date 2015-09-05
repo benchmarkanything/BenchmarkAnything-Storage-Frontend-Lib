@@ -587,16 +587,16 @@ sub listnames
         }
         elsif ($frontend eq 'http')
         {
-                require Mojo::UserAgent;
+                my $ua  = $self->_get_user_agent;
+                my $url = $self->_get_base_url."/api/v1/listnames";
 
-                # query
-                my $url   = $self->{config}{benchmarkanything}{frontends}{http}{base_url};
-                $url     .= "/api/v1/listnames";
-                $url     .= "/$pattern"  if defined $pattern;
-                my $list  = Mojo::UserAgent->new->get($url)->res->json;
+                my $res = $ua->get($url)->res;
+                die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
+
+                my $result = $res->json;
 
                 # output
-                return $list;
+                return $result;
         }
         else
         {
