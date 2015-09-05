@@ -491,16 +491,20 @@ sub add
 
         # --- add to storage ---
 
-        # add data
-        print "Add data...\n" if $self->{verbose};
-        foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
-                my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
-                if (not $success)
-                {
-                        die "benchmarkanything: error while adding data: ".$@;
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
+        {
+                # add data
+                print "Add data...\n" if $self->{verbose};
+                foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
+                        my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
+                        if (not $success)
+                        {
+                                die "benchmarkanything: error while adding data: ".$@;
+                        }
                 }
+                print "Done.\n" if $self->{verbose};
         }
-        print "Done.\n" if $self->{verbose};
 
         return $self;
 }
