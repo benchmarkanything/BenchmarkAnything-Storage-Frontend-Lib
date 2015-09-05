@@ -595,13 +595,27 @@ sub listnames
 {
         my ($self, $pattern) = @_;
 
-        if ($self->{backend} eq "tapper")
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
         {
                 return $self->{tapper_benchmark}->list_benchmark_names(defined($pattern) ? ($pattern) : ());
         }
+        elsif ($frontend eq 'http')
+        {
+                require Mojo::UserAgent;
+
+                # query
+                my $url   = $self->{config}{benchmarkanything}{frontends}{http}{base_url};
+                $url     .= "/api/v1/listnames";
+                $url     .= "/$pattern"  if defined $pattern;
+                my $list  = Mojo::UserAgent->new->get($url)->res->json;
+
+                # output
+                return $list;
+        }
         else
         {
-                die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
+                die "benchmarkanything: no frontend '$frontend', available frontends are: 'http', 'lib'.\n";
         }
 }
 
