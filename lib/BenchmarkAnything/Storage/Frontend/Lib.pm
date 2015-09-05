@@ -59,6 +59,7 @@ sub new
         my $class = shift;
         my $self  = bless { @_ }, $class;
         $self->_read_config;
+        $self->connect;
         return $self;
 }
 
