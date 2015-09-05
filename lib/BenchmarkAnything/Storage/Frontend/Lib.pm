@@ -546,16 +546,18 @@ data points, as configured by the search query.
 
 sub search
 {
-        my ($self, $query) = @_;
+        my ($self, $query, $value_id) = @_;
 
         # --- validate ---
-        if (not $query)
+        if (not $query and not $value_id)
         {
-                die "benchmarkanything: no query data provided.\n";
+                die "benchmarkanything: no query or value_id provided.\n";
         }
 
         if ($self->{backend} eq 'tapper')
         {
+                # single values
+                return $self->{tapper_benchmark}->get_single_benchmark_point($value_id) if $value_id;
                 return $self->{tapper_benchmark}->search_array($query);
         }
         else
