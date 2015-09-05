@@ -596,23 +596,8 @@ sub getpoint
 {
         my ($self, $value_id) = @_;
 
-        if ($self->{backend} eq 'tapper')
-        {
-                require DBI;
-                require Tapper::Benchmark;
-
-                # query
-                die "benchmarkanything: please provide a benchmark value_id'\n"
-                 unless $value_id;
-                my $point = $self->{tapper_benchmark}->get_single_benchmark_point($value_id);
-
-                # output
-                return $point;
-        }
-        else
-        {
-                die "benchmarkanything: backend '.$self->{backend}.' not yet implemented, available backends are: 'tapper'\n";
-        }
+        return $self->search(undef, $value_id);
+        die "benchmarkanything: please provide a benchmark value_id'\n" unless $value_id;
 }
 
 sub _multi_point_stats
