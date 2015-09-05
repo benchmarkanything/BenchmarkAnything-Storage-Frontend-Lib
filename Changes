@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - can optionally work against a HTTP/REST frontend now, like
+          provided by BenchmarkAnything::Storage::Frontend::HTTP.
 
 0.004     2015-09-01
         - provide data transformation functions
