@@ -549,13 +549,18 @@ sub search
         elsif ($frontend eq 'http')
         {
                 my $ua  = $self->_get_user_agent;
-                my $url = $self->_get_base_url."/api/v1/search/$value_id";
+                my $url = $self->_get_base_url."/api/v1/search";
+                my $res;
+                if ($value_id) {
+                        $url .= "/$value_id";
+                        $res = $ua->get($url)->res;
+                } else {
+                        $res = $ua->post($url => json => $query)->res;
+                }
 
-                my $res = $ua->get($url)->res;
                 die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
 
-                my $point = $res->json;
-                return $point;
+                return $res->json;
         }
         else
         {
