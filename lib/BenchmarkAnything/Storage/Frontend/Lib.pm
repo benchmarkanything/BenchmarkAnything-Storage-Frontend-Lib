@@ -331,6 +331,9 @@ sub _read_config
         require File::Slurp;
         require YAML::Any;
 
+        # don't look into user's homedir if we are running tests
+        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? undef : File::HomeDir->my_home . "/.benchmarkanything.cfg";
+
         # read file
         my $configfile     = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || File::HomeDir->my_home . "/.benchmarkanything.cfg";
         my $configyaml     = File::Slurp::read_file($configfile);
