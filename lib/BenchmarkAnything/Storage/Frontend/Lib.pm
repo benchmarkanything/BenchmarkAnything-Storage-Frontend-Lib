@@ -496,9 +496,9 @@ sub add
         my $frontend = $self->{config}{benchmarkanything}{frontend};
         if ($frontend eq 'lib')
         {
-                # add data
-                print "Add data...\n" if $self->{verbose};
+                print "Add data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
                 foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
+                        print "." if $self->{debug};
                         my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
                         if (not $success)
                         {
