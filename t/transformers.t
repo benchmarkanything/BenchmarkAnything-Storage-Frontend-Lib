@@ -7,6 +7,13 @@ use Test::More 0.88;
 use Test::Deep 'cmp_deeply';
 require BenchmarkAnything::Storage::Frontend::Lib;
 
+# my $cfgfile   = "t/benchmarkanything-tapper-mysql.cfg";
+# my $dsn       = 'DBI:mysql:database=benchmarkanythingtest';
+my $cfgfile   = "t/benchmarkanything-tapper.cfg";
+my $dsn       = 'dbi:SQLite:t/benchmarkanything.sqlite';
+
+$ENV{BENCHMARKANYTHING_CONFIGFILE} = $cfgfile;
+
 my $input;
 my $output;
 my $expected;

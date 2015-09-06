@@ -13,6 +13,9 @@ require BenchmarkAnything::Storage::Frontend::Lib;
 # my $dsn       = 'DBI:mysql:database=benchmarkanythingtest';
 my $cfgfile   = "t/benchmarkanything-tapper.cfg";
 my $dsn       = 'dbi:SQLite:t/benchmarkanything.sqlite';
+
+$ENV{BENCHMARKANYTHING_CONFIGFILE} = $cfgfile;
+
 my $output_json;
 my $output;
 my $expected;
@@ -46,8 +49,7 @@ diag "\nUsing DSN: '$dsn'";
 diag "\n========== Test lib config ==========";
 
 my $balib = BenchmarkAnything::Storage::Frontend::Lib
- ->new(cfgfile => $cfgfile,
-       really  => $dsn,
+ ->new(really  => $dsn,
        backend => 'tapper',
        verbose => 0,
        debug   => 0,
