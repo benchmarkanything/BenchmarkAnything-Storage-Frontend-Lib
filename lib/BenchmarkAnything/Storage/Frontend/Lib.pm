@@ -636,6 +636,36 @@ sub listnames
         }
 }
 
+=head2 process_raw_result_queue($count)
+
+Works on the queued entries created by C<add> in I<queuemode=1>. It
+finishes as soon as there are no more unprocessed raw entries, or it
+processed C<$count> entries (default=10).
+
+=cut
+
+sub process_raw_result_queue
+{
+        my ($self, $count) = @_;
+
+        $count ||= 10;
+
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
+        {
+                my $dequeued_raw_bench_bundle_id;
+                do {
+                        $dequeued_raw_bench_bundle_id = $self->{tapper_benchmark}->process_queued_multi_benchmark;
+                        $count--;
+                } until ($count < 1 or not defined($dequeued_raw_bench_bundle_id));
+        }
+        else
+        {
+                die "benchmarkanything: only frontend 'lib' allowed here.\n";
+        }
+        return;
+}
+
 =head2 getpoint ($value_id)
 
 Returns a single benchmark point with B<all> its key/value pairs.
