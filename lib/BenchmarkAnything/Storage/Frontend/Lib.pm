@@ -496,14 +496,26 @@ sub add
         my $frontend = $self->{config}{benchmarkanything}{frontend};
         if ($frontend eq 'lib')
         {
-                print "Add data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
-                foreach my $chunk (@{$data->{BenchmarkAnythingData}}) { # ensure order, because T::Benchmark optimizes multi-chunk entries
-                        print "." if $self->{debug};
-                        my $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
-                        if (not $success)
+                my $success;
+                if ($self->{queuemode})
+                {
+                        # only queue for later processing
+                        print "Enqueue data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
+                        $success = $self->{tapper_benchmark}->enqueue_multi_benchmark($data->{BenchmarkAnythingData});
+                }
+                else
+                {
+                        print "Add data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
+                        # preserve order, otherwise add_multi_benchmark() would reorder to optimize insert
+                        foreach my $chunk (@{$data->{BenchmarkAnythingData}})
                         {
-                                die "benchmarkanything: error while adding data: ".$@;
+                                print "." if $self->{debug};
+                                $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
                         }
+                }
+                if (not $success)
+                {
+                        die "benchmarkanything: error while adding data: ".$@;
                 }
                 print "Done.\n" if $self->{verbose} or $self->{debug};
         }
