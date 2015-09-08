@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.005     2015-09-08
         - optionally work against a HTTP/REST frontend now, like
           provided by BenchmarkAnything::Storage::Frontend::HTTP.
         - optionally skip schema validation
