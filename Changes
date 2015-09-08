@@ -1,8 +1,13 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-        - can optionally work against a HTTP/REST frontend now, like
+        - optionally work against a HTTP/REST frontend now, like
           provided by BenchmarkAnything::Storage::Frontend::HTTP.
+        - optionally skip schema validation
+        - support queueing as provided by Tapper::Benchmark
+        - better statistics details logging
+        - auto-connect in new()
+        - better db handle cleanup
 
 0.004     2015-09-01
         - provide data transformation functions
