@@ -387,10 +387,9 @@ sub disconnect
 {
         my ($self) = @_;
 
-        if ($self->{tapper_benchmark}{dbh}) {
-                $self->{tapper_benchmark}{dbh}->commit unless $self->{tapper_benchmark}{dbh}{AutoCommit};
-                $self->{tapper_benchmark}{query}->finish;
-                $self->{tapper_benchmark}{dbh}->disconnect;
+        if ($self->{dbh}) {
+                $self->{dbh}->commit unless $self->{dbh}{AutoCommit};
+                undef $self->{dbh}; # setting dbh to undef does better cleanup than disconnect();
         }
         return $self;
 }
