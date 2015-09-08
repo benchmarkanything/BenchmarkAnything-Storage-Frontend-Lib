@@ -655,6 +655,32 @@ sub listnames
         }
 }
 
+=head2 gc()
+
+Run garbage collector. This cleans up potential garbage that might
+have piled up, in particular qeued raw results that are already
+processed but still in the storage.
+
+Initially the garbage collection is made for the queing functionality
+(see L</process_raw_result_queue> until we are confident it is
+waterproof. However, generally there might be new code arriving in the
+future for which garbage collection might also make sense, so we
+provide this function as general entry point to do The Right Thing -
+whatever that is by that time.
+
+=cut
+
+sub gc
+{
+        my ($self) = @_;
+
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
+        {
+                $self->{tapper_benchmark}->gc;
+        }
+}
+
 =head2 process_raw_result_queue($count)
 
 Works on the queued entries created by C<add> in I<queuemode=1>. It
