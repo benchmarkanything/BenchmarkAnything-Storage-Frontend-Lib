@@ -21,7 +21,7 @@ my $output;
 my $expected;
 
 sub verify {
-        my ($input, $output, $fields, $query_file) = @_;
+        my ($input, $output, $fields) = @_;
 
         for (my $i=0; $i < @$input; $i++) {
                 my $got      = $output->[$i];
@@ -40,7 +40,7 @@ sub query_and_verify {
         my $query    = JSON::decode_json("".File::Slurp::read_file($query_file));
         my $expected = JSON::decode_json("".File::Slurp::read_file($expectation_file));
         my $output   = $balib->search($query);
-        verify($expected, $output, $fields, $query_file);
+        verify($expected, $output, $fields);
 }
 
 
