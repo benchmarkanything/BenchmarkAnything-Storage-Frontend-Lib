@@ -356,21 +356,31 @@ sub connect
 {
         my ($self) = @_;
 
-        require DBI;
-        require Tapper::Benchmark;
-        no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
+        {
+                require DBI;
+                require Tapper::Benchmark;
+                no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
-        # connect
-        print "Connect db...\n" if $self->{verbose};
-        my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
-        my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
-        my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
-        my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
-         or die "benchmarkanything: can not connect: ".$DBI::errstr;
+                # connect
+                print "Connect db...\n" if $self->{verbose};
+                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+                my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
+                my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
+                my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
+                 or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
-        # remember
-        $self->{dbh}              = $dbh;
-        $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
+                # remember
+                $self->{dbh}              = $dbh;
+                $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
+        }
+        elsif ($frontend eq 'http')
+        {
+                my $ua  = $self->_get_user_agent;
+                my $url = $self->_get_base_url."/api/v1/hello";
+                die "benchmarkanything: can't connect to result storage ($url)\n" if (!$ua->get($url)->res->code or $ua->get($url)->res->code != 200);
+        }
 
         return $self;
 }
@@ -387,9 +397,13 @@ sub disconnect
 {
         my ($self) = @_;
 
-        if ($self->{dbh}) {
-                $self->{dbh}->commit unless $self->{dbh}{AutoCommit};
-                undef $self->{dbh}; # setting dbh to undef does better cleanup than disconnect();
+        my $frontend = $self->{config}{benchmarkanything}{frontend};
+        if ($frontend eq 'lib')
+        {
+                if ($self->{dbh}) {
+                        $self->{dbh}->commit unless $self->{dbh}{AutoCommit};
+                        undef $self->{dbh}; # setting dbh to undef does better cleanup than disconnect();
+                }
         }
         return $self;
 }
