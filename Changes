@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.006     2015-09-10
         - INCOMPATIBLE CHANGE: Config keys completely restructure
         - init_workdir(): set up initial ~/.benchmarkanything/
 
