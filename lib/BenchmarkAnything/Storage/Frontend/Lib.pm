@@ -58,8 +58,8 @@ sub new
 {
         my $class = shift;
         my $self  = bless { @_ }, $class;
-        $self->_read_config;
-        $self->connect;
+        $self->_read_config unless $self->{noconfig};
+        $self->connect      unless $self->{noconnect};
         return $self;
 }
 
