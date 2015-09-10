@@ -332,7 +332,7 @@ sub _read_config
         require YAML::Any;
 
         # don't look into user's homedir if we are running tests
-        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? undef : File::HomeDir->my_home . "/.benchmarkanything.cfg";
+        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? undef : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
 
         # read file
         eval {
@@ -499,6 +499,109 @@ sub createdb
                         die "benchmarkanything: error while creating BenchmarkAnything DB: ".$batch->dbh->errstr;
                 }
 
+        }
+
+        return;
+}
+
+=head2 init_workdir
+
+Initializes a work directory C<~/.benchmarkanything/> with config
+files, which should work by default and can be tweaked by the user.
+
+=cut
+
+sub init_workdir
+{
+        my ($self) = @_;
+
+        require File::Basename;
+        require File::ShareDir;
+        require File::HomeDir;
+        require File::Slurp;
+
+        my $home_ba = File::HomeDir->my_home."/.benchmarkanything";
+        my $command = File::Basename::basename($0);
+
+        if (-d $home_ba)
+        {
+                print "Workdir '$home_ba' already exists - skipping.\n" if $self->{verbose};
+        }
+        else
+        {
+                require File::Path;
+                File::Path::make_path($home_ba);
+        }
+
+        foreach my $basename (qw(client.cfg server.cfg default.cfg README))
+        {
+                my $source_file = File::ShareDir::dist_file('BenchmarkAnything-Storage-Frontend-Lib', "config/$basename");
+                my $dest_file   = "$home_ba/$basename";
+
+                if (! -e $dest_file)
+                {
+                        my $content     =  File::Slurp::read_file($source_file);
+
+                        # poor man's templating
+                        $content        =~ s{\[%\s*CLIENTCFG\s*%\]}{$home_ba/client.cfg}g;
+                        $content        =~ s{\[%\s*SERVERCFG\s*%\]}{$home_ba/server.cfg}g;
+                        $content        =~ s{\[%\s*LOCALCFG\s*%\]}{$home_ba/default.cfg}g;
+                        $content        =~ s{\[%\s*CFG\s*%\]}{$dest_file}g;
+                        $content        =~ s{\[%\s*HOME\s*%\]}{$home_ba}g;
+
+                        print "Create configfile: $dest_file...\n" if $self->{verbose};
+                        open my $CFGFILE, ">", $dest_file or die "Could not create $dest_file.\n";
+                        print $CFGFILE $content;
+                        close $CFGFILE;
+                }
+                else
+                {
+                        print "Config '$dest_file' already exists - skipping.\n" if $self->{verbose};
+                }
+        }
+
+        my $dbfile = "$home_ba/benchmarkanything.sqlite";
+        my $we_created_db = 0;
+        if (! -e $dbfile)
+        {
+                print "Create storage: $dbfile...\n" if $self->{verbose};
+                __PACKAGE__->new(cfgfile => "$home_ba/default.cfg",
+                                 really  => "dbi:SQLite:$dbfile",
+                                )->createdb;
+                $we_created_db = 1;
+        }
+        else
+        {
+                print "Storage '$dbfile' already exists - skipping.\n" if $self->{verbose};
+        }
+
+        if ($self->{verbose})
+        {
+                print "\n";
+                print "By default it will use this config: $home_ba/default.cfg\n";
+                print "If you want another one, set it in your ~/.bash_profile:\n";
+                print "  export BENCHMARKANYTHING_CONFIGFILE=$home_ba/client.cfg\n";
+
+                unless ($we_created_db)
+                {
+                        print "\n";
+                        print "Initialize a new database (it asks for confirmation) with:\n";
+                        print "  $command createdb\n";
+                        print "\nReady.\n";
+                }
+                else
+                {
+                        print "\n";
+                        print "Create sample values like this:\n";
+                        print qq(  echo '{"BenchmarkAnythingData":[{"NAME":"benchmarkanything.hello.world", "VALUE":17.2}]}' | $command add\n);
+                        print "\n";
+                        print "List metric names:\n";
+                        print qq(  $command listnames\n);
+                        print "\n";
+                        print "Query sample values:\n";
+                        print qq(  echo '{"select":["NAME","VALUE"],"where":[["=","NAME","benchmarkanything.hello.world"]]}' | $command search\n);
+                        print "\n";
+                }
         }
 
         return;
