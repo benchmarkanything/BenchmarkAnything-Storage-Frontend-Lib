@@ -332,7 +332,7 @@ sub _read_config
         require YAML::Any;
 
         # don't look into user's homedir if we are running tests
-        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? undef : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
+        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? "t/benchmarkanything-tapper.cfg" : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
 
         # read file
         eval {
