@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - set cfg default to allow dzil pod coverage tests of dependent
+          libs
 
 0.006     2015-09-10
         - INCOMPATIBLE CHANGE: Config keys completely restructure
