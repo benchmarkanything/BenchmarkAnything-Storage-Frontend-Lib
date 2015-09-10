@@ -89,6 +89,7 @@ my $options =  {
                 aggregation => "avg", # sub entries of {stats}: avg, stdv, ci_95_lower, ci_95_upper
                 verbose     => 1,
                };
+diag "\n"; # align all verbose output
 $output = $balib->transform_chartlines($input, $options);
 cmp_deeply($output, $expected, "data transformation - google areachart");
 

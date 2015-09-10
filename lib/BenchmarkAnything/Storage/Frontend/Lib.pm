@@ -339,7 +339,7 @@ sub _read_config
         $self->{config}  = YAML::Any::Load("".File::Slurp::read_file($self->{cfgfile}));
 
         # defaults
-        $self->{config}{benchmarkanything}{frontend} ||= 'lib';
+        $self->{config}{benchmarkanything}{backend} ||= 'local';
 
         return $self;
 }
@@ -356,8 +356,8 @@ sub connect
 {
         my ($self) = @_;
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 require DBI;
                 require Tapper::Benchmark;
@@ -365,9 +365,9 @@ sub connect
 
                 # connect
                 print "Connect db...\n" if $self->{verbose};
-                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
-                my $user     = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{user};
-                my $password = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{password};
+                my $dsn      = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
+                my $user     = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{user};
+                my $password = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{password};
                 my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
@@ -375,7 +375,7 @@ sub connect
                 $self->{dbh}              = $dbh;
                 $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
         }
-        elsif ($frontend eq 'http')
+        elsif ($backend eq 'http')
         {
                 my $ua  = $self->_get_user_agent;
                 my $url = $self->_get_base_url."/api/v1/hello";
@@ -397,8 +397,8 @@ sub disconnect
 {
         my ($self) = @_;
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 if ($self->{dbh}) {
                         $self->{dbh}->commit unless $self->{dbh}{AutoCommit};
@@ -426,7 +426,7 @@ sub _are_you_sure
         my ($self) = @_;
 
         # DSN
-        my $dsn = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+        my $dsn = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
 
         # option --really
         if ($self->{really})
@@ -478,7 +478,7 @@ sub createdb
                 my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
 
                 # get schema SQL according to driver
-                my $dsn      = $self->{config}{benchmarkanything}{backends}{tapper}{benchmark}{dsn};
+                my $dsn      = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
                 my ($scheme, $driver, $attr_string, $attr_hash, $driver_dsn) = DBI->parse_dsn($dsn)
                  or die "benchmarkanything: can not parse DBI DSN '$dsn'";
                 my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
@@ -526,19 +526,19 @@ sub add
 
         # --- add to storage ---
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 my $success;
                 if ($self->{queuemode})
                 {
                         # only queue for later processing
-                        print "Enqueue data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
+                        print "Enqueue data [backend:local]...\n" if $self->{verbose} or $self->{debug};
                         $success = $self->{tapper_benchmark}->enqueue_multi_benchmark($data->{BenchmarkAnythingData});
                 }
                 else
                 {
-                        print "Add data [frontend:lib]...\n" if $self->{verbose} or $self->{debug};
+                        print "Add data [backend:local]...\n" if $self->{verbose} or $self->{debug};
                         # preserve order, otherwise add_multi_benchmark() would reorder to optimize insert
                         foreach my $chunk (@{$data->{BenchmarkAnythingData}})
                         {
@@ -552,11 +552,11 @@ sub add
                 }
                 print "Done.\n" if $self->{verbose} or $self->{debug};
         }
-        elsif ($frontend eq 'http')
+        elsif ($backend eq 'http')
         {
                 my $ua  = $self->_get_user_agent;
                 my $url = $self->_get_base_url."/api/v1/add";
-                print "Add data [frontend:http]...\n" if $self->{verbose} or $self->{debug};
+                print "Add data [backend:http]...\n" if $self->{verbose} or $self->{debug};
                 my $res = $ua->post($url => json => $data)->res;
                 print "Done.\n" if $self->{verbose} or $self->{debug};
 
@@ -564,7 +564,7 @@ sub add
         }
         else
         {
-                die "benchmarkanything: no frontend '$frontend', available frontends are: 'http', 'lib'.\n";
+                die "benchmarkanything: no backend '$backend', available backends are: 'http', 'local'.\n";
         }
 
         return $self;
@@ -583,7 +583,7 @@ sub _get_user_agent
 
 sub _get_base_url
 {
-        shift->{config}{benchmarkanything}{frontends}{http}{base_url};
+        shift->{config}{benchmarkanything}{backends}{http}{base_url};
 }
 
 =head2 search ($query)
@@ -604,14 +604,14 @@ sub search
                 die "benchmarkanything: no query or value_id provided.\n";
         }
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 # single values
                 return $self->{tapper_benchmark}->get_single_benchmark_point($value_id) if $value_id;
                 return $self->{tapper_benchmark}->search_array($query);
         }
-        elsif ($frontend eq 'http')
+        elsif ($backend eq 'http')
         {
                 my $ua  = $self->_get_user_agent;
                 my $url = $self->_get_base_url."/api/v1/search";
@@ -629,7 +629,7 @@ sub search
         }
         else
         {
-                die "benchmarkanything: no frontend '$frontend', available frontends are: 'http', 'lib'.\n";
+                die "benchmarkanything: no backend '$backend', available backends are: 'http', 'local'.\n";
         }
 }
 
@@ -645,12 +645,12 @@ sub listnames
 {
         my ($self, $pattern) = @_;
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 return $self->{tapper_benchmark}->list_benchmark_names(defined($pattern) ? ($pattern) : ());
         }
-        elsif ($frontend eq 'http')
+        elsif ($backend eq 'http')
         {
                 my $ua  = $self->_get_user_agent;
                 my $url = $self->_get_base_url."/api/v1/listnames";
@@ -665,7 +665,7 @@ sub listnames
         }
         else
         {
-                die "benchmarkanything: no frontend '$frontend', available frontends are: 'http', 'lib'.\n";
+                die "benchmarkanything: no backend '$backend', available backends are: 'http', 'local'.\n";
         }
 }
 
@@ -688,8 +688,8 @@ sub gc
 {
         my ($self) = @_;
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 $self->{tapper_benchmark}->gc;
         }
@@ -709,8 +709,8 @@ sub process_raw_result_queue
 
         $count ||= 10;
 
-        my $frontend = $self->{config}{benchmarkanything}{frontend};
-        if ($frontend eq 'lib')
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
         {
                 my $dequeued_raw_bench_bundle_id;
                 do {
@@ -720,7 +720,7 @@ sub process_raw_result_queue
         }
         else
         {
-                die "benchmarkanything: only frontend 'lib' allowed here.\n";
+                die "benchmarkanything: only backend 'local' allowed here.\n";
         }
         return;
 }
