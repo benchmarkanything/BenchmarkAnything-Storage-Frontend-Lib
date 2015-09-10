@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.007     2015-09-10
         - set cfg default to allow dzil pod coverage tests of dependent
           libs
 
