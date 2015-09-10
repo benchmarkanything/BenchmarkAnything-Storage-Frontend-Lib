@@ -335,8 +335,14 @@ sub _read_config
         my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? undef : File::HomeDir->my_home . "/.benchmarkanything.cfg";
 
         # read file
-        $self->{cfgfile} = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || $default_cfgfile;
-        $self->{config}  = YAML::Any::Load("".File::Slurp::read_file($self->{cfgfile}));
+        eval {
+                $self->{cfgfile} = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || $default_cfgfile;
+                $self->{config}  = YAML::Any::Load("".File::Slurp::read_file($self->{cfgfile}));
+        };
+        if ($@)
+        {
+                die "benchmarkanything: error loading configfile: $@\n";
+        }
 
         # defaults
         $self->{config}{benchmarkanything}{backend} ||= 'local';
