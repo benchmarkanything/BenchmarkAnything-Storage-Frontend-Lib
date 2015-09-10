@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - INCOMPATIBLE CHANGE: Config keys completely restructure
+        - init_workdir(): set up initial ~/.benchmarkanything/
 
 0.005     2015-09-08
         - optionally work against a HTTP/REST frontend now, like
