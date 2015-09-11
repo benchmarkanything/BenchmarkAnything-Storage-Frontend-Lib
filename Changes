@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.008     2015-09-11
         - moved away data transformation code into better suited lib
 
 0.007     2015-09-10
