@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - moved away data transformation code into better suited lib
 
 0.007     2015-09-10
         - set cfg default to allow dzil pod coverage tests of dependent
