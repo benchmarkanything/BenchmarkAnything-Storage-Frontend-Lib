@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.009     2015-09-17
         - adapt to renamed DB backend
           (Tapper::Benchmark -> BenchmarkAnything::Storage::Backend::SQL)
 
