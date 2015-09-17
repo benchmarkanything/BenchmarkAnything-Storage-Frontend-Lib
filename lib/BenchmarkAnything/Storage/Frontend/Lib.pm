@@ -34,7 +34,7 @@ Print out progress messages.
 =item * debug
 
 Pass through debug option to used modules, like
-L<Tapper::Benchmark|Tapper::Benchmark>.
+L<BenchmarkAnything::Storage::Backend::SQL|BenchmarkAnything::Storage::Backend::SQL>.
 
 =item * separator
 
@@ -332,7 +332,7 @@ sub _read_config
         require YAML::Any;
 
         # don't look into user's homedir if we are running tests
-        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? "t/benchmarkanything-tapper.cfg" : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
+        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? "t/benchmarkanything.cfg" : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
 
         # read file
         eval {
@@ -366,20 +366,20 @@ sub connect
         if ($backend eq 'local')
         {
                 require DBI;
-                require Tapper::Benchmark;
+                require BenchmarkAnything::Storage::Backend::SQL;
                 no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
                 # connect
                 print "Connect db...\n" if $self->{verbose};
-                my $dsn      = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
-                my $user     = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{user};
-                my $password = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{password};
+                my $dsn      = $self->{config}{benchmarkanything}{storage}{backend}{sql}{dsn};
+                my $user     = $self->{config}{benchmarkanything}{storage}{backend}{sql}{user};
+                my $password = $self->{config}{benchmarkanything}{storage}{backend}{sql}{password};
                 my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
                 # remember
-                $self->{dbh}              = $dbh;
-                $self->{tapper_benchmark} = Tapper::Benchmark->new({dbh => $dbh, debug => $self->{debug} });
+                $self->{dbh}     = $dbh;
+                $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh, debug => $self->{debug} });
         }
         elsif ($backend eq 'http')
         {
@@ -432,7 +432,7 @@ sub _are_you_sure
         my ($self) = @_;
 
         # DSN
-        my $dsn = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
+        my $dsn = $self->{config}{benchmarkanything}{storage}{backend}{sql}{dsn};
 
         # option --really
         if ($self->{really})
@@ -459,9 +459,9 @@ sub _are_you_sure
 =head2 createdb
 
 Initializes the DB, as configured by C<backend> and C<dsn>.  On
-backend C<tapper> this means executing the DROP TABLE and CREATE TABLE
+the backend this means executing the DROP TABLE and CREATE TABLE
 statements that come with
-L<Tapper::Benchmark|Tapper::Benchmark>. Because that is a severe
+L<BenchmarkAnything::Storage::Backend::SQL|BenchmarkAnything::Storage::Backend::SQL>. Because that is a severe
 operation it verifies an "are you sure" test, by comparing the
 parameter C<really> against the DSN from the config, or if that
 doesn't match, asking interactively on STDIN.
@@ -484,13 +484,13 @@ sub createdb
                 my $batch            = DBIx::MultiStatementDo->new(dbh => $self->{dbh});
 
                 # get schema SQL according to driver
-                my $dsn      = $self->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn};
+                my $dsn      = $self->{config}{benchmarkanything}{storage}{backend}{sql}{dsn};
                 my ($scheme, $driver, $attr_string, $attr_hash, $driver_dsn) = DBI->parse_dsn($dsn)
                  or die "benchmarkanything: can not parse DBI DSN '$dsn'";
                 my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
-                my $sql_file = File::ShareDir::dist_file('Tapper-Benchmark', "tapper-benchmark-create-schema.$driver");
+                my $sql_file = File::ShareDir::dist_file('BenchmarkAnything-Storage-Backend-SQL', "create-schema.$driver");
                 my $sql      = File::Slurp::read_file($sql_file);
-                $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace Tapper::Benchmark's default
+                $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace BenchmarkAnything::Storage::Backend::SQL's default
 
                 # execute schema SQL
                 my @results = $batch->do($sql);
@@ -643,7 +643,7 @@ sub add
                 {
                         # only queue for later processing
                         print "Enqueue data [backend:local]...\n" if $self->{verbose} or $self->{debug};
-                        $success = $self->{tapper_benchmark}->enqueue_multi_benchmark($data->{BenchmarkAnythingData});
+                        $success = $self->{backend}->enqueue_multi_benchmark($data->{BenchmarkAnythingData});
                 }
                 else
                 {
@@ -652,7 +652,7 @@ sub add
                         foreach my $chunk (@{$data->{BenchmarkAnythingData}})
                         {
                                 print "." if $self->{debug};
-                                $success = $self->{tapper_benchmark}->add_multi_benchmark([$chunk]);
+                                $success = $self->{backend}->add_multi_benchmark([$chunk]);
                         }
                 }
                 if (not $success)
@@ -698,7 +698,7 @@ sub _get_base_url
 =head2 search ($query)
 
 Execute a search query against the backend store, currently
-L<Tapper::Benchmark|Tapper::Benchmark>, and returns the list of found
+L<BenchmarkAnything::Storage::Backend::SQL|BenchmarkAnything::Storage::Backend::SQL>, and returns the list of found
 data points, as configured by the search query.
 
 =cut
@@ -717,8 +717,8 @@ sub search
         if ($backend eq 'local')
         {
                 # single values
-                return $self->{tapper_benchmark}->get_single_benchmark_point($value_id) if $value_id;
-                return $self->{tapper_benchmark}->search_array($query);
+                return $self->{backend}->get_single_benchmark_point($value_id) if $value_id;
+                return $self->{backend}->search_array($query);
         }
         elsif ($backend eq 'http')
         {
@@ -757,7 +757,7 @@ sub listnames
         my $backend = $self->{config}{benchmarkanything}{backend};
         if ($backend eq 'local')
         {
-                return $self->{tapper_benchmark}->list_benchmark_names(defined($pattern) ? ($pattern) : ());
+                return $self->{backend}->list_benchmark_names(defined($pattern) ? ($pattern) : ());
         }
         elsif ($backend eq 'http')
         {
@@ -800,7 +800,7 @@ sub gc
         my $backend = $self->{config}{benchmarkanything}{backend};
         if ($backend eq 'local')
         {
-                $self->{tapper_benchmark}->gc;
+                $self->{backend}->gc;
         }
 }
 
@@ -823,7 +823,7 @@ sub process_raw_result_queue
         {
                 my $dequeued_raw_bench_bundle_id;
                 do {
-                        $dequeued_raw_bench_bundle_id = $self->{tapper_benchmark}->process_queued_multi_benchmark;
+                        $dequeued_raw_bench_bundle_id = $self->{backend}->process_queued_multi_benchmark;
                         $count--;
                 } until ($count < 1 or not defined($dequeued_raw_bench_bundle_id));
         }

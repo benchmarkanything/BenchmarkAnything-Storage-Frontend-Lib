@@ -9,9 +9,9 @@ use JSON;
 
 require BenchmarkAnything::Storage::Frontend::Lib;
 
-# my $cfgfile   = "t/benchmarkanything-tapper-mysql.cfg";
+# my $cfgfile   = "t/benchmarkanything-mysql.cfg";
 # my $dsn       = 'DBI:mysql:database=benchmarkanythingtest';
-my $cfgfile   = "t/benchmarkanything-tapper.cfg";
+my $cfgfile   = "t/benchmarkanything.cfg";
 my $dsn       = 'dbi:SQLite:t/benchmarkanything.sqlite';
 
 $ENV{BENCHMARKANYTHING_CONFIGFILE} = $cfgfile;
@@ -54,7 +54,7 @@ my $balib = BenchmarkAnything::Storage::Frontend::Lib
        debug   => 0,
       )
  ->connect;
-is ($balib->{config}{benchmarkanything}{storage}{tapper}{benchmark}{dsn}, $dsn, "config - dsn");
+is ($balib->{config}{benchmarkanything}{storage}{backend}{sql}{dsn}, $dsn, "config - dsn");
 
 diag "\n========== Test typical queries ==========";
 
