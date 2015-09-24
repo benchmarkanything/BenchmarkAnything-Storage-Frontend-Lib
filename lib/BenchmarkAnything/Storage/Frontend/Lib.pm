@@ -67,7 +67,8 @@ sub new
 {
         my $class = shift;
         my $self  = bless { @_ }, $class;
-        $self->_read_config unless $self->{noconfig};
+        require BenchmarkAnything::Config;
+        $self->{config} = BenchmarkAnything::Config->new(cfgfile => $self->{cfgfile}) unless $self->{noconfig};
         $self->connect      unless $self->{noconnect};
         return $self;
 }
@@ -319,44 +320,6 @@ sub _output_format
                 die "benchmarkanything-storage: unrecognized output format: $outtype.";
         }
         return $output;
-}
-
-=head2 _read_config
-
-Internal function.
-
-Reads the config file; either from given file name, or env variable
-C<BENCHMARKANYTHING_CONFIGFILE> or C<$home/.benchmarkanything.cfg>.
-
-Returns the object to allow chained method calls.
-
-=cut
-
-sub _read_config
-{
-        my ($self) = @_;
-
-        require File::HomeDir;
-        require File::Slurp;
-        require YAML::Any;
-
-        # don't look into user's homedir if we are running tests
-        my $default_cfgfile = $ENV{HARNESS_ACTIVE} ? "t/benchmarkanything.cfg" : File::HomeDir->my_home . "/.benchmarkanything/default.cfg";
-
-        # read file
-        eval {
-                $self->{cfgfile} = $self->{cfgfile} || $ENV{BENCHMARKANYTHING_CONFIGFILE} || $default_cfgfile;
-                $self->{config}  = YAML::Any::Load("".File::Slurp::read_file($self->{cfgfile}));
-        };
-        if ($@)
-        {
-                die "benchmarkanything: error loading configfile: $@\n";
-        }
-
-        # defaults
-        $self->{config}{benchmarkanything}{backend} ||= 'local';
-
-        return $self;
 }
 
 =head2 connect
