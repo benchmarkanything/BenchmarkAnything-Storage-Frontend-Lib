@@ -651,13 +651,8 @@ sub add
 
 sub _get_user_agent
 {
-        my ($self) = @_;
-
         require Mojo::UserAgent;
-
-        # query
-        my $ua    = Mojo::UserAgent->new;
-        return $ua;
+        return Mojo::UserAgent->new;
 }
 
 sub _get_base_url
