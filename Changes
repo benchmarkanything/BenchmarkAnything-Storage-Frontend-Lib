@@ -1,6 +1,10 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - refactored away config handling and HTTP reporting into separate
+          libs
+        - declare 5.008 as minimum Perl version, let's see if we can hold
+          that promise
 
 0.009     2015-09-17
         - adapt to renamed DB backend
