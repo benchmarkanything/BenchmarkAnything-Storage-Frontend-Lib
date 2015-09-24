@@ -17,6 +17,14 @@ Instantiate a new object.
 Path to config file. If not provided it uses env variable
 C<BENCHMARKANYTHING_CONFIGFILE> or C<$home/.benchmarkanything.cfg>.
 
+=item * noconfig
+
+If set to 1, do not initialize configuration.
+
+=item * noconnect
+
+If set to 1, do not automatically connect to backend store.
+
 =item * really
 
 Used for critical functions like createdb. Provide a true value or, in
