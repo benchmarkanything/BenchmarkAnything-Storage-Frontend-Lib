@@ -635,13 +635,11 @@ sub add
         }
         elsif ($backend eq 'http')
         {
-                my $ua  = $self->_get_user_agent;
-                my $url = $self->_get_base_url."/api/v1/add";
-                print "Add data [backend:http]...\n" if $self->{verbose} or $self->{debug};
-                my $res = $ua->post($url => json => $data)->res;
-                print "Done.\n" if $self->{verbose} or $self->{debug};
-
-                die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
+                require BenchmarkAnything::Reporter;
+                $self->{config} = BenchmarkAnything::Reporter->new(config  => $self->{config},
+                                                                   verbose => $self->{verbose},
+                                                                   debug   => $self->{debug},
+                                                                  );
         }
         else
         {
