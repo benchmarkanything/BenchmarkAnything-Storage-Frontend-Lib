@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.010     2015-09-24
         - refactored away config handling and HTTP reporting into separate
           libs
         - declare 5.008 as minimum Perl version, let's see if we can hold
