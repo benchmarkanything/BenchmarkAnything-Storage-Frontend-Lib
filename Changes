@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - RT#107315 - replace File::Slurp with File::Slurper
 
 0.010     2015-09-24
         - refactored away config handling and HTTP reporting into separate
