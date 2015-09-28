@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.012     2015-09-28
         - adapt tests to new BenchmarkAnything::Config behavior
 
 0.011     2015-09-28
