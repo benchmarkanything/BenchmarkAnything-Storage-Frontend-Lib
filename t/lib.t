@@ -5,6 +5,7 @@ use warnings;
 use Data::Dumper;
 use Test::More 0.88;
 use Test::Deep 'cmp_set';
+use File::Slurper;
 use JSON;
 
 require BenchmarkAnything::Storage::Frontend::Lib;
@@ -37,8 +38,8 @@ sub verify {
 sub query_and_verify {
         my ($balib, $query_file, $expectation_file, $fields) = @_;
 
-        my $query    = JSON::decode_json("".File::Slurp::read_file($query_file));
-        my $expected = JSON::decode_json("".File::Slurp::read_file($expectation_file));
+        my $query    = JSON::decode_json(File::Slurper::read_text($query_file));
+        my $expected = JSON::decode_json(File::Slurper::read_text($expectation_file));
         my $output   = $balib->search($query);
         verify($expected, $output, $fields);
 }
@@ -60,7 +61,7 @@ diag "\n========== Test typical queries ==========";
 
 # Create and fill test DB
 $balib->createdb;
-$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-01.json')));
 
 # Search for benchmarks, verify against expectation
 query_and_verify($balib,
@@ -85,8 +86,8 @@ query_and_verify($balib,
 $balib->createdb;
 
 # Create duplicates
-$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
-$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-01.json')));
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-01.json')));
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-01.json')));
 
 # verify
 query_and_verify($balib,
@@ -99,7 +100,7 @@ query_and_verify($balib,
 diag "\n========== Metric names ==========";
 
 $balib->createdb;
-$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-02.json')));
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
 
 # simple list
 $output = $balib->listnames;
@@ -137,13 +138,13 @@ diag "\n========== Complete single data points ==========";
 
 # Create and fill test DB
 $balib->createdb;
-$balib->add (JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-02.json')));
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
 
 # full data point
 $output = $balib->getpoint (2);
 cmp_set([keys %$output], [qw(NAME VALUE comment compiler keyword)], "getpoint - expected key/value pairs");
 
-$expected    = JSON::decode_json("".File::Slurp::read_file('t/valid-benchmark-anything-data-02.json'));
+$expected    = JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json'));
 eq_hash($output, $expected->{BenchmarkAnythingData}[1], "getpoint - expected key/value");
 
 # Finish

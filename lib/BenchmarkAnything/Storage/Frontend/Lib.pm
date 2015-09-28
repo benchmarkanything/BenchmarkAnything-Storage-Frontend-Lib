@@ -449,7 +449,7 @@ sub createdb
                 no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
                 require DBI;
-                require File::Slurp;
+                require File::Slurper;
                 require File::ShareDir;
                 use DBIx::MultiStatementDo;
 
@@ -461,7 +461,7 @@ sub createdb
                  or die "benchmarkanything: can not parse DBI DSN '$dsn'";
                 my ($dbname) = $driver_dsn =~ m/database=(\w+)/g;
                 my $sql_file = File::ShareDir::dist_file('BenchmarkAnything-Storage-Backend-SQL', "create-schema.$driver");
-                my $sql      = File::Slurp::read_file($sql_file);
+                my $sql      = File::Slurper::read_text($sql_file);
                 $sql         =~ s/^use `testrundb`;/use `$dbname`;/m if $dbname; # replace BenchmarkAnything::Storage::Backend::SQL's default
 
                 # execute schema SQL
@@ -490,7 +490,7 @@ sub init_workdir
         require File::Basename;
         require File::ShareDir;
         require File::HomeDir;
-        require File::Slurp;
+        require File::Slurper;
 
         my $home_ba = File::HomeDir->my_home."/.benchmarkanything";
         my $command = File::Basename::basename($0);
@@ -512,7 +512,7 @@ sub init_workdir
 
                 if (! -e $dest_file)
                 {
-                        my $content     =  File::Slurp::read_file($source_file);
+                        my $content     =  File::Slurper::read_text($source_file);
 
                         # poor man's templating
                         $content        =~ s{\[%\s*CLIENTCFG\s*%\]}{$home_ba/client.cfg}g;
