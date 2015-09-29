@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - re-upload due to META/provides freakup
 
 0.012     2015-09-28
         - adapt tests to new BenchmarkAnything::Config behavior
