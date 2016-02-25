@@ -476,6 +476,88 @@ sub createdb
         return;
 }
 
+=head2 _default_additional_keys
+
+Internal method. Specific to SQL backend.
+
+Return default columns that are part of each BenchmarkAnything data point.
+
+=cut
+
+sub _default_additional_keys
+{
+        my ($self) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                return { $self->{backend}->default_columns };
+        }
+        else
+        {
+                # Hardcoded from BenchmarkAnything::Storage::Backend::SQL::Query::common,
+                # as it is a backend-special and internal thing anyway.
+                return {
+                    'NAME'      => 'b.bench',
+                    'UNIT'      => 'bu.bench_unit',
+                    'VALUE'     => 'bv.bench_value',
+                    'VALUE_ID'  => 'bv.bench_value_id',
+                    'CREATED'   => 'bv.created_at',
+                };
+        }
+}
+
+
+=head2 _get_benchmark_operators
+
+Internal method. Specific to SQL backend.
+
+Return the allowed operators of the BenchmarkAnything query API.
+
+=cut
+
+sub _get_benchmark_operators
+{
+        my ($self) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                return [ $self->{backend}->benchmark_operators ];
+        }
+        else
+        {
+                # Hardcoded from BenchmarkAnything::Storage::Backend::SQL::Query::common,
+                # as it is a backend-special and internal thing anyway.
+                return [ '=', '!=', 'like', 'not like', '<', '>', '<=', '>=' ];
+        }
+}
+
+
+=head2 _get_additional_key_id
+
+Internal method. Specific to SQL backend.
+
+Returns id of the additional key.
+
+=cut
+
+sub _get_additional_key_id
+{
+        my ($self, $key_name) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                return $self->{backend}->_get_additional_key_id($key_name);
+        }
+        else
+        {
+                die "benchmarkanything: no backend '$backend' allowed here, available backends are: 'local'.\n";
+        }
+}
+
+
 =head2 init_workdir
 
 Initializes a work directory C<~/.benchmarkanything/> with config

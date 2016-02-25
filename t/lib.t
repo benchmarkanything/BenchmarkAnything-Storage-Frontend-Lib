@@ -147,5 +147,33 @@ cmp_set([keys %$output], [qw(NAME VALUE comment compiler keyword)], "getpoint - 
 $expected    = JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json'));
 eq_hash($output, $expected->{BenchmarkAnythingData}[1], "getpoint - expected key/value");
 
+
+diag "\n========== Internals: additional keys ==========";
+
+$balib->createdb;
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
+my $id1 = $balib->_get_additional_key_id ('keyword');
+my $id2 = $balib->_get_additional_key_id ('comment');
+my $id3 = $balib->_get_additional_key_id ('compiler');
+# We don't know their storage order
+ok(($id1 >= 1), "got meaningful id ($id1) for additional key1");
+ok(($id2 >= 1), "got meaningful id ($id2) for additional key2");
+ok(($id3 >= 1), "got meaningful id ($id3) for additional key3");
+ok(($id1 != $id2), "id_key1 != id_key2");
+ok(($id1 != $id3), "id_key1 != id_key3");
+ok(($id2 != $id3), "id_key2 != id_key3");
+
+my $keys = $balib->_default_additional_keys;
+cmp_set([keys %$keys], [qw(NAME VALUE UNIT VALUE_ID CREATED)], "default additional keys");
+
+
+diag "\n========== Internals: operators ==========";
+
+$balib->createdb;
+$balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
+my $operators = $balib->_get_benchmark_operators;
+diag Dumper($operators);
+cmp_set($operators, [ '=', '!=', 'like', 'not like', '<', '>', '<=', '>=' ], "get benchmark operators");
+
 # Finish
 done_testing;
