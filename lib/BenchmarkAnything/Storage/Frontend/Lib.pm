@@ -743,6 +743,42 @@ sub listnames
         }
 }
 
+=head2 listkeys ($pattern)
+
+Returns an array ref with all additional key names that are used for
+metrics. Optionally allows to restrict the search by a SQL LIKE search
+pattern, allowing C<%> as wildcard.
+
+=cut
+
+sub listkeys
+{
+        my ($self, $pattern) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                return $self->{backend}->list_additional_keys(defined($pattern) ? ($pattern) : ());
+        }
+        elsif ($backend eq 'http')
+        {
+                my $ua  = $self->_get_user_agent;
+                my $url = $self->_get_base_url."/api/v1/listkeys";
+
+                my $res = $ua->get($url)->res;
+                die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
+
+                my $result = $res->json;
+
+                # output
+                return $result;
+        }
+        else
+        {
+                die "benchmarkanything: no backend '$backend', available backends are: 'http', 'local'.\n";
+        }
+}
+
 =head2 gc()
 
 Run garbage collector. This cleans up potential garbage that might
