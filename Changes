@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.014     2016-03-01
         - shorter mysql user in boilerplate default config files
 
 0.013     2015-09-29
