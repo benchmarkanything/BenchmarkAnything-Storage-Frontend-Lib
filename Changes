@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - shorter mysql user in boilerplate default config files
 
 0.013     2015-09-29
         - re-upload due to META/provides freakup
