@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.015     2016-03-02
         - explicitely versioned dependencies declared
 
 0.014     2016-03-01
