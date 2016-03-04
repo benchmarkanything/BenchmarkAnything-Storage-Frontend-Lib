@@ -861,6 +861,41 @@ sub listkeys
         }
 }
 
+=head2 stats
+
+Returns a hash with info about the storage, like how many data points,
+how many metrics, how many additional keys, are stored.
+
+=cut
+
+sub stats
+{
+        my ($self) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                return $self->{backend}->get_stats;
+        }
+        elsif ($backend eq 'http')
+        {
+                my $ua  = $self->_get_user_agent;
+                my $url = $self->_get_base_url."/api/v1/stats";
+
+                my $res = $ua->get($url)->res;
+                die "benchmarkanything: ".$res->error->{message}." ($url)\n" if $res->error;
+
+                my $result = $res->json;
+
+                # output
+                return $result;
+        }
+        else
+        {
+                die "benchmarkanything: no backend '$backend', available backends are: 'http', 'local'.\n";
+        }
+}
+
 =head2 gc()
 
 Run garbage collector. This cleans up potential garbage that might
