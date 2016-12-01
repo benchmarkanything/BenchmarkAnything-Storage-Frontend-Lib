@@ -142,7 +142,7 @@ $balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anyth
 
 # full data point
 $output = $balib->getpoint (2);
-cmp_set([keys %$output], [qw(NAME VALUE comment compiler keyword)], "getpoint - expected key/value pairs");
+cmp_set([keys %$output], [qw(NAME VALUE VALUE_ID CREATED_AT comment compiler keyword)], "getpoint - expected key/value pairs");
 
 $expected    = JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json'));
 eq_hash($output, $expected->{BenchmarkAnythingData}[1], "getpoint - expected key/value");
