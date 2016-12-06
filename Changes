@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.017     2016-12-06
+        - test fixes [Kivanc Yazan]
+
 0.016     2016-03-04
         - new function 'stats' - counters of points and metrics
 
