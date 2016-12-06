@@ -181,9 +181,10 @@ $balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anyth
 
 # simple counts
 $output = $balib->stats;
-is($output->{count_datapoints}, 8, "stats - count data points");
-is($output->{count_metrics},    5, "stats - count metrics");
-is($output->{count_keys},       3, "stats - count keys");
+is($output->{count_datapointkeys},  18, "stats - count data point keys");
+is($output->{count_datapoints},      8, "stats - count data points");
+is($output->{count_metrics},         5, "stats - count metrics");
+is($output->{count_keys},            3, "stats - count keys");
 
 # Finish
 done_testing;
