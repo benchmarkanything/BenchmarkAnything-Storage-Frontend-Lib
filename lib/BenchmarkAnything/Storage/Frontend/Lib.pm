@@ -349,9 +349,16 @@ sub connect
                 my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
+                # external search engine
+                my $searchengine = $self->{config}{benchmarkanything}{searchengine};
+
                 # remember
                 $self->{dbh}     = $dbh;
-                $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh, debug => $self->{debug} });
+                $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh,
+                                                                                  debug => $self->{debug},
+                                                                                  force => $self->{force},
+                                                                                  searchengine => $searchengine,
+                                                                                 });
         }
         elsif ($backend eq 'http')
         {
