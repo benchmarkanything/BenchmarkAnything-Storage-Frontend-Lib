@@ -954,7 +954,7 @@ sub process_raw_result_queue
         }
         else
         {
-                die "benchmarkanything: only backend 'local' allowed here.\n";
+                die "benchmarkanything: only backend 'local' allowed in 'process_raw_result_queue'.\n";
         }
         return;
 }
