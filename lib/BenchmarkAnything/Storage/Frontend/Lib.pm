@@ -959,6 +959,36 @@ sub process_raw_result_queue
         return;
 }
 
+=head2 sync_search_engine($force, $start, $count)
+
+Synchronizes entries from the ::SQL backend into the configured search
+engine (usually Elasticsearch). It starts at entry C<$start> and bulk
+indexes in blocks ofC<$count>.
+
+=over 4
+
+=item force
+
+If set, all entries are (re-)indexed, not just the new ones.
+
+=cut
+
+sub sync_search_engine
+{
+        my ($self, $force, $start, $count) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                $self->{backend}->sync_search_engine($force, $start, $count);
+        }
+        else
+        {
+                die "benchmarkanything: only backend 'local' allowed in 'sync_with_elasticsearch'.\n";
+        }
+        return;
+}
+
 =head2 getpoint ($value_id)
 
 Returns a single benchmark point with B<all> its key/value pairs.
