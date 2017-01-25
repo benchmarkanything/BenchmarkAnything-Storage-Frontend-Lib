@@ -350,14 +350,14 @@ sub connect
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
                 # external search engine
-                my $searchengine = $self->{config}{benchmarkanything}{searchengine};
+                my $searchengine = $self->{config}{benchmarkanything}{searchengine} || {};
 
                 # remember
                 $self->{dbh}     = $dbh;
                 $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh,
                                                                                   debug => $self->{debug},
                                                                                   force => $self->{force},
-                                                                                  searchengine => $searchengine,
+                                                                                  (keys %$searchengine ? (searchengine => $searchengine) : ()),
                                                                                  });
         }
         elsif ($backend eq 'http')
