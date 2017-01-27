@@ -959,17 +959,62 @@ sub process_raw_result_queue
         return;
 }
 
+=head2 init_search_engine($force)
+
+Initializes the configured search engine (Elasticsearch). If the index
+already exists it does nothing, except when you set C<$force> to a
+true value which deletes and re-creates the index. This is necessary
+for example to apply new type mappings.
+
+After a successful (re-)init you need to run C<sync_search_engine>.
+
+During (re-init) and sync you should disable querying by setting
+
+  benchmarkanything.searchengine.elasticsearch.enable_query: 0
+
+=head3 Options
+
+=over 4
+
+=item force
+
+If set, an existing index is deleted before (re-)creating.
+
+=back
+
+=cut
+
+sub init_search_engine
+{
+        my ($self, $force) = @_;
+
+        my $backend = $self->{config}{benchmarkanything}{backend};
+        if ($backend eq 'local')
+        {
+                $self->{backend}->init_search_engine($force);
+        }
+        else
+        {
+                die "benchmarkanything: only backend 'local' allowed in 'init_search_engine'.\n";
+        }
+        return;
+}
+
 =head2 sync_search_engine($force, $start, $count)
 
 Synchronizes entries from the ::SQL backend into the configured search
 engine (usually Elasticsearch). It starts at entry C<$start> and bulk
-indexes in blocks ofC<$count>.
+indexes in blocks of C<$count>.
+
+=head3 Options
 
 =over 4
 
 =item force
 
 If set, all entries are (re-)indexed, not just the new ones.
+
+=back
 
 =cut
 
@@ -984,10 +1029,11 @@ sub sync_search_engine
         }
         else
         {
-                die "benchmarkanything: only backend 'local' allowed in 'sync_with_elasticsearch'.\n";
+                die "benchmarkanything: only backend 'local' allowed in 'sync_search_engine'.\n";
         }
         return;
 }
+
 
 =head2 getpoint ($value_id)
 
