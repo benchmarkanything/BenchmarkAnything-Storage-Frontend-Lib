@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - Elasticsearch support
 
 0.017     2016-12-06
         - test fixes [Kivanc Yazan]
