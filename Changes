@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - require latest ::Backend::SQL
 
 0.018     2017-01-31
         - Elasticsearch support
