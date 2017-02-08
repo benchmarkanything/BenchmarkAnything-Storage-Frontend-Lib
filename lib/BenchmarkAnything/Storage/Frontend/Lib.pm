@@ -355,6 +355,7 @@ sub connect
                 # remember
                 $self->{dbh}     = $dbh;
                 $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh,
+                                                                                  dbh_config => $self->{config}{benchmarkanything}{storage}{backend}{sql},
                                                                                   debug => $self->{debug},
                                                                                   force => $self->{force},
                                                                                   verbose => $self->{verbose},
