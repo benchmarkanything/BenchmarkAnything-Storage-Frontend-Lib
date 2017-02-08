@@ -357,6 +357,7 @@ sub connect
                 $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh,
                                                                                   debug => $self->{debug},
                                                                                   force => $self->{force},
+                                                                                  verbose => $self->{verbose},
                                                                                   (keys %$searchengine ? (searchengine => $searchengine) : ()),
                                                                                  });
         }
