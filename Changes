@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - pass through 'dbh_config' needed to support parallel execution
 
 0.020     2017-02-08
         - pass through 'verbose' option to ::Backend::SQL
