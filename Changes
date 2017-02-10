@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - verbosity tweaks fitting ::Backend::SQL behaviour changes
 
 0.021     2017-02-08
         - pass through 'dbh_config' needed to support parallel execution

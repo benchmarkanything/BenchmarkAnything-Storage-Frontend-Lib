@@ -180,6 +180,7 @@ $balib->createdb;
 $balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
 
 # simple counts
+$balib->{backend}{verbose} = 1;
 $output = $balib->stats;
 is($output->{count_datapointkeys},  18, "stats - count data point keys");
 is($output->{count_datapoints},      8, "stats - count data points");

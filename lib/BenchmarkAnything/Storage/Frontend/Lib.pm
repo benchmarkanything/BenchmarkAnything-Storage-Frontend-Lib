@@ -342,7 +342,7 @@ sub connect
                 no warnings 'once'; # avoid 'Name "DBI::errstr" used only once'
 
                 # connect
-                print "Connect db...\n" if $self->{verbose};
+                print "Connect db...\n" if $self->{debug};
                 my $dsn      = $self->{config}{benchmarkanything}{storage}{backend}{sql}{dsn};
                 my $user     = $self->{config}{benchmarkanything}{storage}{backend}{sql}{user};
                 my $password = $self->{config}{benchmarkanything}{storage}{backend}{sql}{password};
