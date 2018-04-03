@@ -172,7 +172,7 @@ diag "\n========== Internals: operators ==========";
 $balib->createdb;
 $balib->add (JSON::decode_json(File::Slurper::read_text('t/valid-benchmark-anything-data-02.json')));
 my $operators = $balib->_get_benchmark_operators;
-cmp_set($operators, [ '=', '!=', 'like', 'not like', '<', '>', '<=', '>=' ], "get benchmark operators");
+cmp_set($operators, [ '=', '!=', 'like', 'not_like', 'is_empty', '<', '>', '<=', '>=' ], "get benchmark operators");
 
 diag "\n========== Stats ==========";
 
