@@ -346,7 +346,7 @@ sub connect
                 my $dsn      = $self->{config}{benchmarkanything}{storage}{backend}{sql}{dsn};
                 my $user     = $self->{config}{benchmarkanything}{storage}{backend}{sql}{user};
                 my $password = $self->{config}{benchmarkanything}{storage}{backend}{sql}{password};
-                my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1})
+                my $dbh      = DBI->connect($dsn, $user, $password, {'RaiseError' => 1, 'mysql_auto_reconnect' => 1})
                  or die "benchmarkanything: can not connect: ".$DBI::errstr;
 
                 # external search engine
