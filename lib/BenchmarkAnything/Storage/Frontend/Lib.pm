@@ -538,7 +538,7 @@ sub _get_benchmark_operators
         {
                 # Hardcoded from BenchmarkAnything::Storage::Backend::SQL::Query::common,
                 # as it is a backend-special and internal thing anyway.
-                return [ '=', '!=', 'like', 'not like', '<', '>', '<=', '>=' ];
+                return [ '=', '!=', 'like', 'not_like', 'is_empty', '<', '>', '<=', '>=' ];
         }
 }
 
