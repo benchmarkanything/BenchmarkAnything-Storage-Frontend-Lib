@@ -356,9 +356,9 @@ sub connect
                 $self->{dbh}     = $dbh;
                 $self->{backend} = BenchmarkAnything::Storage::Backend::SQL->new({dbh => $dbh,
                                                                                   dbh_config => $self->{config}{benchmarkanything}{storage}{backend}{sql},
-                                                                                  debug => $self->{debug},
+                                                                                  debug => $self->{config}{benchmarkanything}{debug},
                                                                                   force => $self->{force},
-                                                                                  verbose => $self->{verbose},
+                                                                                  verbose => $self->{config}{benchmarkanything}{verbose},
                                                                                   (keys %$searchengine ? (searchengine => $searchengine) : ()),
                                                                                  });
         }
