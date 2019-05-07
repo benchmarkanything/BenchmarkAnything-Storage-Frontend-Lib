@@ -948,11 +948,12 @@ sub process_raw_result_queue
         my $backend = $self->{config}{benchmarkanything}{backend};
         if ($backend eq 'local')
         {
-                my $dequeued_raw_bench_bundle_id;
+                my @dequeued_raw_bench_bundle_ids;
                 do {
-                        $dequeued_raw_bench_bundle_id = $self->{backend}->process_queued_multi_benchmark;
-                        $count--;
-                } until ($count < 1 or not defined($dequeued_raw_bench_bundle_id));
+                        @dequeued_raw_bench_bundle_ids = $self->{backend}->process_queued_multi_benchmark($count);
+                        #print STDERR "Processed bench_bundles: ".join(",", @dequeued_raw_bench_bundle_ids)."\n" if $self->{verbose};
+                        $count = $count - @dequeued_raw_bench_bundle_ids;
+                } until ($count < 1 or not @dequeued_raw_bench_bundle_ids);
         }
         else
         {
