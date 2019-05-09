@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.023     2019-05-09
         - lock process_raw_result_queue
         - bundle_count now passed down the call chain
 
