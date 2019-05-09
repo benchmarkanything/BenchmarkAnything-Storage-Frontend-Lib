@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - lock process_raw_result_queue
+        - bundle_count now passed down the call chain
 
 0.022     2018-04-11
         - verbosity tweaks fitting ::Backend::SQL behaviour changes
