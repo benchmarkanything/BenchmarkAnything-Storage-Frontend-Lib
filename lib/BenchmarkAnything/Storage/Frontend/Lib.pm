@@ -943,6 +943,13 @@ sub process_raw_result_queue
 {
         my ($self, $count) = @_;
 
+        require LockFile::Simple;
+
+        my $lock;
+        my $lockmgr = LockFile::Simple->make(-stale => 1, -autoclean => 1);
+
+        return unless $lock = $lockmgr->trylock('/tmp/process_raw_result_queue');
+
         $count ||= 10;
 
         my $backend = $self->{config}{benchmarkanything}{backend};
@@ -957,8 +964,11 @@ sub process_raw_result_queue
         }
         else
         {
+                $lock->release;
                 die "benchmarkanything: only backend 'local' allowed in 'process_raw_result_queue'.\n";
         }
+
+        $lock->release;
         return;
 }
 
